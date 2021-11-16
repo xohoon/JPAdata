@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import xohoon.study.JPAdata.dto.MemberDto;
 import xohoon.study.JPAdata.entity.Member;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
@@ -28,4 +29,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("select new xohoon.study.JPAdata.dto.MemberDto(m.id, m.username, t.name) from Member m join m.team t")
     List<MemberDto> findMemberDto();
+
+    @Query("select m from Member m where m.username in :names")
+    List<Member> findByNames(@Param("names") Collection<String> names);
 }
