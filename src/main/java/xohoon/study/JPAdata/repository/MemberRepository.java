@@ -9,10 +9,15 @@ import xohoon.study.JPAdata.entity.Member;
 import java.util.List;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
+    // 기본으로 정의된 기능을 주로 쓰고
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
     List<Member> findTop3HelloBy();
 
 //    @Query(name = "Member.findByUsername") named query가 없으면 메서드 이름 검색
     List<Member> findByUsername(@Param("username") String username);
+
+    // 조금 복잡한 정적쿼리 추천(애플리케이션 로딩시 장애발생)
+    @Query("select m from Member m where m.username = :username and m.age = :age")
+    List<Member> findUser(@Param("username") String username, @Param("age") int age);
 }
