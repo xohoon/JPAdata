@@ -49,4 +49,10 @@ public class MemberJpaRepository {
                 .getResultList();
     }
 
+    public List<Member> findByUsername(String username) {
+        return em.createNamedQuery("Member.findLByUsername", Member.class)
+                .setParameter("username", username)
+                .getResultList();
+    }
+
 }
