@@ -14,7 +14,7 @@ import javax.persistence.*;
 )
 // entity graph 미리 세팅
 @NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
-public class Member {
+public class Member extends JpaBaseEntity {
 
     @Id @GeneratedValue
     @Column(name = "member_id")
