@@ -3,15 +3,14 @@ package xohoon.study.JPAdata.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import xohoon.study.JPAdata.dto.MemberDto;
 import xohoon.study.JPAdata.entity.Member;
 import xohoon.study.JPAdata.entity.Team;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -67,4 +66,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 //    @EntityGraph(attributePaths = {"team"})
     @EntityGraph("Member.all")
     List<Member> findEntityGraphByUsername(@Param("username") String username);
+
+    // 오로지 100% read 할때 사용(어마어마하게 트래픽이 많아서 성능이 안나올때) - 이전에 캐시를 깔아야함
+    @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    Member findReadOnlyByUsername(String username);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Member> findLockByUsername(String username);
 }
