@@ -3,12 +3,14 @@ package xohoon.study.JPAdata.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import xohoon.study.JPAdata.dto.MemberDto;
 import xohoon.study.JPAdata.entity.Member;
+import xohoon.study.JPAdata.entity.Team;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,4 +51,20 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Modifying(clearAutomatically = true) // 제외하면 update 안됨, clear auto 해주면 clear 안해줘도됨
     @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
     int bulkAgePlus(@Param("age") int age);
+
+    @Query("select m from Member m left join fetch m.team")
+    List<Member> findMemberFetchJoin();
+
+    // v1~3
+    @Override
+    @EntityGraph(attributePaths = {"team"}) // JPA query 사용하지 않고 성능 최적화(fetch join)
+    List<Member> findAll();
+
+    @EntityGraph(attributePaths = {"team"})
+    @Query("select m from Member m")
+    List<Member> findMemberEntityGraph();
+
+//    @EntityGraph(attributePaths = {"team"})
+    @EntityGraph("Member.all")
+    List<Member> findEntityGraphByUsername(@Param("username") String username);
 }

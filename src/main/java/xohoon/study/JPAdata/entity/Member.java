@@ -12,6 +12,8 @@ import javax.persistence.*;
         name="Member.findLByUsername",
         query="select m from Member m where m.username = :username"
 )
+// entity graph 미리 세팅
+@NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
 public class Member {
 
     @Id @GeneratedValue

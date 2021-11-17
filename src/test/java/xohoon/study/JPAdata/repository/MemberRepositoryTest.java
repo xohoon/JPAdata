@@ -227,6 +227,7 @@ class MemberRepositoryTest {
         // when
         int resultCount = memberRepository.bulkAgePlus(20);
         // 벌크연산은 영속성 컨텍스트를 무시하고 디비에 쿼리 날린다.. 고로 벌크연산 이후에 영속성 컨텍스트 날려버려야홤
+        // 가장 좋은건 벌크연산 끝나고 마무리하는게 가장 좋음, 다른 db connection 쓸때도 마찬가지
 //        em.clear();
 
         List<Member> result = memberRepository.findByUsername("member5");
@@ -237,4 +238,32 @@ class MemberRepositoryTest {
         assertThat(resultCount).isEqualTo(5);
     }
 
+    @Test
+    public void findMemberLazy() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+        em.flush();
+        em.clear();
+
+        //when
+        // select Member
+        List<Member> members = memberRepository.findAll();
+//        List<Member> members1 = memberRepository.findMemberFetchJoin();
+//        List<Member> members2 = memberRepository.findEntityGraphByUsername(member);
+
+        for (Member member : members) {
+            System.out.println("memebr = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass());
+            System.out.println("member.team = " + member.getTeam().getName());
+        }
+
+        //then
+    }
 }
