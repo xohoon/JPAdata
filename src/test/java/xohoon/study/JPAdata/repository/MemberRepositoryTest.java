@@ -14,6 +14,8 @@ import xohoon.study.JPAdata.dto.MemberDto;
 import xohoon.study.JPAdata.entity.Member;
 import xohoon.study.JPAdata.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,8 @@ class MemberRepositoryTest {
     MemberRepository memberRepository;
     @Autowired
     TeamRepository teamRepository;
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     public void testMember() {
@@ -208,6 +212,29 @@ class MemberRepositoryTest {
         assertThat(page.hasNext()).isTrue();
         // slice로 바로 바꿔줌 (repository도 변경해줘야함, total 사용 불가)
         Slice<Member> slice = memberRepository.findByAge(age, pageRequest);
+    }
+
+    @Test
+    public void bulkUpdate() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 20));
+        memberRepository.save(new Member("member3", 30));
+        memberRepository.save(new Member("member4", 40));
+        memberRepository.save(new Member("member5", 50));
+        memberRepository.save(new Member("member6", 60));
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);
+        // 벌크연산은 영속성 컨텍스트를 무시하고 디비에 쿼리 날린다.. 고로 벌크연산 이후에 영속성 컨텍스트 날려버려야홤
+//        em.clear();
+
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member5 = result.get(0);
+        System.out.println("member5 = " + member5);
+
+        //then
+        assertThat(resultCount).isEqualTo(5);
     }
 
 }
