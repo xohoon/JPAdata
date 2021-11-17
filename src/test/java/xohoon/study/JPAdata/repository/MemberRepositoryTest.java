@@ -4,6 +4,10 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import xohoon.study.JPAdata.dto.MemberDto;
@@ -121,6 +125,7 @@ class MemberRepositoryTest {
         assertThat(usernameList.get(0)).isEqualTo(m1.getUsername());
         assertThat(usernameList.get(1)).isEqualTo(m2.getUsername());
     }
+
     @Test
     public void findMemberDto() {
         Team team = new Team("teamA");
@@ -135,6 +140,7 @@ class MemberRepositoryTest {
             System.out.println("DTO = " + dto);
         }
     }
+
     @Test
     public void findByNames() {
         Member m1 = new Member("AAA", 10);
@@ -148,5 +154,60 @@ class MemberRepositoryTest {
         }
     }
 
+    @Test
+    public void returnType() {
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("BBB", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> listMember = memberRepository.findListByUsername("AAA");
+        Member findMember = memberRepository.findMemberByUsername("AAA");
+        // 데이터 있을지 없을지 모르면 optional 로 고고
+        Optional<Member> optionalMember = memberRepository.findOptionalByUsername("AAA");
+        // 위 테스트는 결과값이 두개 이상이면 예외가 터진다 (단건조회이기 때문에)
+
+    }
+
+
+    @Test
+    public void paging() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+        memberRepository.save(new Member("member6", 10));
+        memberRepository.save(new Member("member7", 10));
+
+        int age = 10;
+        // 0부터 시작
+        // sort가 복잡할 때 QueryCount에서 sort
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.Direction.DESC, "username");
+        // when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+
+        // entity -> DTO 변경해서 반환(API 반환 가능)
+        Page<MemberDto> toMap = page.map(m -> new MemberDto(m.getId(), m.getUsername(), null));
+
+        // then
+        List<Member> content = page.getContent();
+        long totalElements = page.getTotalElements();
+
+        for (Member member : content) {
+            System.out.println("member = " + member);
+        }
+        System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(7);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(3);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+        // slice로 바로 바꿔줌 (repository도 변경해줘야함, total 사용 불가)
+        Slice<Member> slice = memberRepository.findByAge(age, pageRequest);
+    }
 
 }
